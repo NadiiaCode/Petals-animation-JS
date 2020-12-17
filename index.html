@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Petals animation</title>
+  </head>
+  <body>
+    <canvas></canvas>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      canvas {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+      }
+    </style>
+
+    <script>
+      onload = function () {
+        var display = document.querySelector("canvas");
+        var w = (display.width = innerWidth);
+        var h = (display.height = innerHeight);
+        var dimension = display.getContext("2d");
+
+        function f(x, y) {
+          var v = Math.min(w, h);
+          x -= w / 2;
+          y -= h / 2;
+          x /= v / 2;
+          y /= v / 2;
+          var t = Date.now() / 2e3;
+          t = Math.cos(t);
+          x *= 3;
+          y *= 3;
+          return Math.sin(x - t * y) * Math.sin(y + t * x);
+        }
+
+        var epsilon = 1e-6;
+
+        function grad(x, y) {
+          var dx = (f(x + epsilon, y) - f(x, y)) / epsilon;
+          var dy = (f(x, y + epsilon) - f(x, y)) / epsilon;
+          return { x: dx, y: dy };
+        }
+
+        var petals = [],
+          total = 1000;
+        for (var i = 0; i < total; i++)
+          setTimeout(function () {
+            var x = Math.random() * w;
+            var y = Math.random() * h;
+            var lifetime = ((5 + Math.random()) / 5) * 100;
+            petals.push({ x: x, y: y, lifetime: lifetime });
+          }, 10 * i);
+
+        function renderPetals() {
+          dimension.fillStyle = "rgba(255, 255, 255, 0.04)";
+          dimension.fillRect(0, 0, w, h);
+          dimension.fillStyle = " #3b0922";
+          petals.map(function (b) {
+            dimension.fillRect(b.x, b.y, 1, 1);
+          });
+        }
+
+        function updatePetals(dt) {
+          petals.map(function (b, i) {
+            if (b.lifetime-- < 0) {
+              b.x = Math.random() * w;
+              b.y = Math.random() * h;
+              b.lifetime = ((5 + Math.random()) / 5) * 100;
+            }
+
+            var g = grad(b.x, b.y);
+
+            b.x += g.x * dt;
+            b.y += g.y * dt;
+          });
+        }
+
+        setInterval(function () {
+          updatePetals(100);
+          renderPetals();
+        }, 1000 / 60);
+      };
+    </script>
+  </body>
+</html>
